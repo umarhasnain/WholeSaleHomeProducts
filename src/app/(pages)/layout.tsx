@@ -1,6 +1,5 @@
 'use client'
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
+
 import { usePathname } from 'next/navigation';
 import React, { ReactNode } from 'react';
 
@@ -14,9 +13,9 @@ const Layout = ({ children }: Props) => {
 
   return (
     <div>
-      {!isDashboard && <Header />}
+     
       {children}
-      {!isDashboard && <Footer />}
+    
     </div>
   );
 };
