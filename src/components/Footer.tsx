@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Company Info */}
         <div>
-          <h2 className="text-xl font-bold mb-4">ZentraWholeSale</h2>
+          <h2 className="text-xl font-bold mb-4">WholeSale HomeProducts</h2>
           <p className="text-sm">
             Leading wholesale supplier offering a wide range of quality products at competitive prices.
           </p>
@@ -49,7 +49,7 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="mt-10 border-t border-blue-700 pt-4 text-center text-sm">
-        &copy; {new Date().getFullYear()} ZentraWholeSale. All rights reserved.
+        &copy; {new Date().getFullYear()} WholeSaleHomeProducts. All rights reserved.
       </div>
     </footer>
   );

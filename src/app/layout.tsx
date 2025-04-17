@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WholesaleHome – Bulk Deals on Electronics, Kitchen, Tools & More",
+  title: "WholeSaleHomeProducts – Bulk Deals on Electronics, Kitchen, Tools & More",
   description:
     "Discover unbeatable wholesale prices on Electronics, Home & Kitchen, Automotive, Sports, Tools & more. Shop bulk with confidence at WholesaleHome – your trusted B2B marketplace.",
 };
