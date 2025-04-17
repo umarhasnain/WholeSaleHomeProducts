@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { DataContext, Product } from "@/context/DataContext";
@@ -55,8 +53,9 @@ const ProductData = () => {
                   <Image
                     src={offer.imageUrls[0]}
                     alt={offer.name}
-                    fill
-                    className="object-cover w-full h-60"
+                    layout="fill" // Ensure you use `layout="fill"`
+                    objectFit="cover" // To maintain aspect ratio and fill the area
+                    className="object-cover"
                   />
                 </Link>
                 <span className="absolute top-2 left-2 bg-red-600 text-white text-xs sm:text-sm font-semibold px-3 py-1 rounded-full shadow">
@@ -64,23 +63,21 @@ const ProductData = () => {
                 </span>
               </div>
               <div className="p-5 text-left space-y-2 flex-grow flex flex-col justify-between">
-              <Link href={`/productDetails/${offer.id}`}>
-                <h3 className="text-base sm:text-lg font-semibold text-blue-900">
-                  {offer.name}
-                </h3>
+                <Link href={`/productDetails/${offer.id}`}>
+                  <h3 className="text-base sm:text-lg font-semibold text-blue-900">
+                    {offer.name}
+                  </h3>
                 </Link>
                 {/* Button at the bottom */}
                 <Link href={`/productDetails/${offer.id}`}>
-                <button className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition">
-                  Add To Quote Request
-                </button>
+                  <button className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition">
+                    Add To Quote Request
+                  </button>
                 </Link>
               </div>
             </div>
           ))}
         </div>
-
-        
       </div>
     </section>
   );

@@ -1,26 +1,18 @@
-// app/dashboard/layout.tsx
-import { Geist, Geist_Mono } from "next/font/google";
-import "@/app/globals.css";
+import React from 'react';
+import DashboardLayoutBranding from '@/components/admin/Sidebar';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const Layout = ( ) => {
   return (
-    <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-      {/* Dashboard content without Header/Footer */}
-      {children}
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <DashboardLayoutBranding />
+
+      {/* Page Content */}
+      <main className="flex-1 p-4">
+        {/* {children} */}
+      </main>
     </div>
   );
-}
+};
+
+export default Layout;

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { DataContext, Product } from "@/context/DataContext";
@@ -45,7 +44,7 @@ const ProductData = () => {
           data-aos="fade-up"
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8"
         >
-          {dataSet.slice(0,7).map((offer, index) => (
+          {dataSet.slice(0, 7).map((offer, index) => (
             <div
               key={index}
               className="bg-blue-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col"
@@ -55,7 +54,8 @@ const ProductData = () => {
                   <Image
                     src={offer.imageUrls[0]}
                     alt={offer.name}
-                    fill
+                    layout="fill" // Make sure the image fills the container
+                    objectFit="cover" // Cover ensures the image fills the div without distortion
                     className="object-cover w-full h-60"
                   />
                 </Link>
@@ -64,16 +64,16 @@ const ProductData = () => {
                 </span>
               </div>
               <div className="p-5 text-left space-y-2 flex-grow flex flex-col justify-between">
-              <Link href={`/productDetails/${offer.id}`}>
-                <h3 className="text-base sm:text-lg font-semibold text-blue-900">
-                  {offer.name}
-                </h3>
+                <Link href={`/productDetails/${offer.id}`}>
+                  <h3 className="text-base sm:text-lg font-semibold text-blue-900">
+                    {offer.name}
+                  </h3>
                 </Link>
                 {/* Button at the bottom */}
                 <Link href={`/productDetails/${offer.id}`}>
-                <button className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition">
-                  Add To Quote Request
-                </button>
+                  <button className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition">
+                    Add To Quote Request
+                  </button>
                 </Link>
               </div>
             </div>
