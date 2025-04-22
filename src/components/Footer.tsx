@@ -31,7 +31,7 @@ export default function Footer() {
           <ul className="space-y-2 text-sm">
             <li>📍 1721 Greenhouse Rd, Houston, TX 77084, USA</li>
             <li>📞 +18325436353</li>
-            <li>✉️ info.wholesalehomeproducts@gmail.com</li>
+            <li>✉️ info@wholesalehomeproducts.com</li>
           </ul>
         </div>
 
