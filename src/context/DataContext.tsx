@@ -20,13 +20,23 @@ export interface Product {
   imageUrls: string[];
 }
 
-// Context Type
+// Data Context Type
 interface DataContextType {
   products: Product[] | null;
   loading: boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
+
+// Cart Context Type
+interface CartContextType {
+  cart: Product[];
+  addToCart: (product: Product) => void;
+  removeFromCart: (productId: string) => void;
+  clearCart: () => void;
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined);
 
 interface DataProviderProps {
   children: ReactNode;
@@ -49,7 +59,7 @@ const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
         setProducts(fetchedProducts);
         setLoading(false);
-        console.log("Fetched data: ", fetchedProducts);
+        console.log('Fetched data: ', fetchedProducts);
       } catch (error) {
         console.error('Error fetching data: ', error);
         setLoading(false);
@@ -66,4 +76,45 @@ const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   );
 };
 
-export { DataContext, DataProvider };
+// Cart Context Provider
+const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [cart, setCart] = useState<Product[]>([]);
+
+  const addToCart = (product: Product) => {
+    setCart((prevCart) => [...prevCart, product]);
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart((prevCart) => prevCart.filter((product) => product.id !== productId));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  return (
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+// Custom hook to use DataContext
+// export const useData = () => {
+//   const context = useContext(DataContext);
+//   if (!context) {
+//     throw new Error('useData must be used within a DataProvider');
+//   }
+//   return context;
+// };
+
+// // Custom hook to use CartContext
+// export const useCart = () => {
+//   const context = useContext(CartContext);
+//   if (!context) {
+//     throw new Error('useCart must be used within a CartProvider');
+//   }
+//   return context;
+// };
+
+export { DataContext, DataProvider, CartProvider, CartContext };

@@ -5,9 +5,11 @@ import Aos from "aos";
 import Image from "next/image";
 import Link from "next/link";
 import { useContext, useEffect } from "react";
+import { CartContext } from "@/context/DataContext";  
 
 const ProductData = () => {
   const context = useContext(DataContext);
+  const cartContext = useContext(CartContext);
   const dataSet: Product[] = context?.products ?? [];
 
   console.log('data===>', dataSet);
@@ -19,6 +21,11 @@ const ProductData = () => {
       once: false,
     });
   }, []);
+
+  // Add product to cart
+  const handleAddToCart = (product: Product) => {
+    cartContext?.addToCart(product);
+  };
 
   return (
     <section
@@ -49,7 +56,7 @@ const ProductData = () => {
               className="bg-blue-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col"
             >
               <div className="relative w-full h-60">
-                <Link href={`/productDetails/${index}`}>
+                <Link href={`/productDetails/${offer.id}`}>
                   <Image
                     src={offer.imageUrls[0]}
                     alt={offer.name}
@@ -68,12 +75,13 @@ const ProductData = () => {
                     {offer.name}
                   </h3>
                 </Link>
-                {/* Button at the bottom */}
-                <Link href={`/productDetails/${offer.id}`}>
-                  <button className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition">
-                    Add To Quote Request
-                  </button>
-                </Link>
+                {/* Add To Quote Request button, which now adds product to cart */}
+                <button
+                  onClick={() => handleAddToCart(offer)}  // Add to cart functionality
+                  className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition"
+                >
+                  Add To Quote Request
+                </button>
               </div>
             </div>
           ))}

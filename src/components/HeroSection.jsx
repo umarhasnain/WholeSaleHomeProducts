@@ -30,7 +30,7 @@ export default function Hero() {
             Explore our huge collection of premium wholesale categories like furniture, fashion, accessories, and more. Quality and value, delivered to your doorstep.
           </p>
           <button className="px-6 py-3 bg-white text-blue-700 font-semibold rounded-full shadow hover:bg-blue-100 transition">
-            Start Shopping
+           Deals Awaiting Below
           </button>
         </motion.div>
 

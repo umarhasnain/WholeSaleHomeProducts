@@ -34,7 +34,7 @@ const BulkOrderCTA = () => {
         >
           Get exclusive wholesale pricing, fast delivery, and quality assurance on every order. Perfect for resellers, retailers, and corporate needs.
         </p>
-        <Link href="/contact">
+        <Link href="/quoteForm">
           <button
             data-aos="fade-up"
             className="mt-2 sm:mt-4 px-6 sm:px-8 py-2 sm:py-3 bg-white text-blue-800 font-semibold rounded-full hover:bg-blue-100 transition duration-300"
