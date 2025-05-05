@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+
+import { auth } from "@/firebase/FirebaseConfig";
 import {
   FiMenu,
   FiX,
@@ -17,12 +20,14 @@ import {
 } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 import Link from "next/link";
+import { useCart } from "@/context/DataContext";
+import UserModeBadge from "./UserModeBadge";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+// interface User {
+//   id: string;
+//   name: string;
+//   email: string;
+// }
 
 const categories = [
   { name: "Electronics", icon: <FiBox /> },
@@ -31,21 +36,34 @@ const categories = [
   { name: "Automotive", icon: <FiShoppingBag /> },
   { name: "Sports & Outdoor", icon: <FiClock /> },
   { name: "Tools & Home Improvement", icon: <FiSun /> },
-  { name: "Toys", icon: <FiArchive /> },
+  { name: "Beauty & Personal Care", icon: <FiArchive /> },
 ];
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"menu" | "categories">("categories");
+  const [activeTab, setActiveTab] = useState<"menu" | "categories">(
+    "categories"
+  );
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const router = useRouter();
 
+  // useEffect(() => {
+  //   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  //   setUser(currentUser);
+  // }, []);
+
+  const { getCartCount } = useCart();
+  const cartCount = getCartCount();
   useEffect(() => {
-    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
-    setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      // router.replace(firebaseUser ? "/account/my-account" : "/signup");
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -91,6 +109,9 @@ export default function Header() {
               <span className="text-2xl font-bold text-black">
                 HomeProducts
               </span>
+              <div className="hidden md:block">
+                <UserModeBadge /> {/* 🏷️ Badge */}
+              </div>
             </div>
           </Link>
 
@@ -126,19 +147,24 @@ export default function Header() {
           </div>
 
           <div className="flex items-center space-x-3 text-gray-600">
-            <Link href="/cart">
+            <Link href="/cart" className="relative">
               <FiShoppingCart className="h-6 w-6 hover:text-blue-600" />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">
+                  {cartCount}
+                </span>
+              )}
             </Link>
 
-            <Link href={user ? "/my-account" : "/signup"}>
+            <Link href={user ? "/account/my-account" : "/signup"}>
               <FaUserCircle className="h-6 w-6 hover:text-blue-600" />
             </Link>
-
+            {/* 
             <Link href="/quoteForm">
               <button className="hidden sm:inline-block hover:bg-blue-500 hover:border-2 border-blue-500 px-3 py-1 text-sm hover:text-white rounded-md">
                 Request a Quote
               </button>
-            </Link>
+            </Link> */}
 
             <button
               className="lg:hidden"
@@ -210,14 +236,18 @@ export default function Header() {
                   Logout
                 </button>
               )}
-              <Link href="/quoteForm">
+              {/* <Link href="/quoteForm">
                 <span
                   onClick={() => setMenuOpen(false)}
                   className="hover:text-blue-600 block"
                 >
                   Quote
                 </span>
-              </Link>
+              </Link> */}
+
+              <div className="flex justify-between items-center p-4 shadow w-40 bg-white">
+                <UserModeBadge />
+              </div>
             </div>
           ) : (
             <ul className="divide-y divide-gray-200">

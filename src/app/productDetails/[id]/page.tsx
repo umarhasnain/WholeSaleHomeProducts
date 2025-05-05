@@ -1,36 +1,47 @@
-'use client';
+"use client";
 
-import React, { useState, useContext, useRef, Suspense } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { FiArrowLeft } from 'react-icons/fi';
-import { DataContext } from '@/context/DataContext';
-import Image from 'next/image';
-import Link from 'next/link';
+import React, { useState, useContext, useRef, Suspense, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { FiArrowLeft } from "react-icons/fi";
+import { DataContext, CartContext } from "@/context/DataContext";
+import Image from "next/image";
+import Link from "next/link";
+import toast from "react-hot-toast";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { auth } from "@/firebase/FirebaseConfig";
 
-export type Product = {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  imageUrl: string;
-  imageUrls: string[];
-};
+import type { Product } from "@/context/DataContext";
 
 const ProductDetails: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const id = Array.isArray(params?.id) ? params?.id[0] : params?.id?.toString();
+  const { id } = params;
 
-  const context = useContext(DataContext);
-  const dataSet: Product[] = context?.products ?? [];
+  const productId = Array.isArray(id) ? id[0] : id;
 
-  const product = dataSet.find((p: Product) => p.id === id);
+  const dataContext = useContext(DataContext);
+  const cartContext = useContext(CartContext);
+
+  const dataSet: Product[] = dataContext?.products ?? [];
+  const product = dataSet.find((p) => p.id === productId);
+
   const [currentImage, setCurrentImage] = useState<number>(0);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [isZooming, setIsZooming] = useState(false);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
 
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
+  // 🧠 Firebase auth state listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // ❗️Early return must come AFTER hooks
   if (!product) {
     return (
       <main className="p-6 flex justify-center items-center min-h-screen">
@@ -39,7 +50,11 @@ const ProductDetails: React.FC = () => {
     );
   }
 
-  const imagesToDisplay = product.imageUrls?.length > 0 ? product.imageUrls : [product.imageUrl];
+  const imagesToDisplay = product.imageUrls?.length
+    ? product.imageUrls
+    : product.imageUrl
+    ? [product.imageUrl]
+    : [];
 
   const handlePrev = () => {
     setCurrentImage((prev) => (prev === 0 ? imagesToDisplay.length - 1 : prev - 1));
@@ -57,6 +72,12 @@ const ProductDetails: React.FC = () => {
     setZoomPosition({ x, y });
   };
 
+  const handleAddToCart = () => {
+    if (!cartContext || !product) return;
+    cartContext.addToCart(product);
+    toast.success(`${product.name} added to cart!`);
+  };
+
   return (
     <main className="max-w-6xl mx-auto p-4">
       <header className="flex items-center gap-4 mb-6">
@@ -72,6 +93,7 @@ const ProductDetails: React.FC = () => {
 
       <Suspense fallback={<div>Loading...</div>}>
         <div className="flex flex-col md:flex-row gap-8">
+          {/* Image Section */}
           <section className="md:w-1/2 w-full flex flex-col items-center relative">
             <div
               ref={imageContainerRef}
@@ -106,7 +128,7 @@ const ProductDetails: React.FC = () => {
               </button>
             </div>
 
-            {/* Thumbnail Gallery */}
+            {/* Thumbnails */}
             <div className="flex mt-4 space-x-2 overflow-x-auto">
               {imagesToDisplay.map((url, index) => (
                 <div key={index} className="relative w-16 h-16">
@@ -118,7 +140,7 @@ const ProductDetails: React.FC = () => {
                     sizes="64px"
                     onClick={() => setCurrentImage(index)}
                     className={`object-cover rounded-md cursor-pointer border-2 transition-all duration-300 ${
-                      currentImage === index ? 'border-blue-600 scale-105' : 'border-transparent'
+                      currentImage === index ? "border-blue-600 scale-105" : "border-transparent"
                     }`}
                   />
                 </div>
@@ -126,16 +148,16 @@ const ProductDetails: React.FC = () => {
             </div>
           </section>
 
-          {/* Zoom Preview Pane */}
+          {/* Zoom Preview */}
           {isZooming && (
             <section className="hidden md:block md:w-1/2">
               <div
                 className="w-full h-[400px] border rounded-lg shadow-lg overflow-hidden"
                 style={{
                   backgroundImage: `url(${imagesToDisplay[currentImage]})`,
-                  backgroundRepeat: 'no-repeat',
+                  backgroundRepeat: "no-repeat",
                   backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                  backgroundSize: '200%',
+                  backgroundSize: "200%",
                 }}
               />
             </section>
@@ -146,19 +168,44 @@ const ProductDetails: React.FC = () => {
             <section className="md:w-1/2 w-full">
               <h2 className="text-4xl font-bold text-blue-800 mb-4">{product.name}</h2>
               <p className="text-lg text-gray-600 mb-2">
-                <span className="font-medium">Category:</span> {product.category || 'Not specified'}
+                <span className="font-medium">Category:</span> {product.category || "Not specified"}
               </p>
+              <div className="mb-6 space-y-2">
+                {user ? (
+                  <>
+                    <h3 className="text-xl font-semibold text-gray-700">Wholesale Price:</h3>
+                    <p className="text-lg text-blue-500 font-medium">
+                      ${product?.wholesalePrice || product?.price}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-semibold text-gray-700">Retail Price:</h3>
+                    <p className="text-lg text-blue-500 font-medium">${product?.retailPrice || product?.price}</p>
+                    <p className="text-sm text-gray-500">(Login to see wholesale pricing)</p>
+                  </>
+                )}
+              </div>
 
               <div className="mb-4">
                 <h3 className="text-2xl font-semibold text-gray-700 mb-2">Description</h3>
                 <p className="text-gray-600">{product.description}</p>
               </div>
 
-              <Link href="/quoteForm">
-                <button className="bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-800 transition">
-                  Send Quote Request
+              <div className="flex gap-4 my-4 justify-center items-center">
+                <button
+                  onClick={handleAddToCart}
+                  className="bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-800 transition"
+                >
+                  Add To Cart
                 </button>
-              </Link>
+
+                <Link href="/checkout">
+                  <button className="bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-800 transition">
+                    Buy Now
+                  </button>
+                </Link>
+              </div>
             </section>
           )}
         </div>

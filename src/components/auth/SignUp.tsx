@@ -7,14 +7,31 @@ import {
   Button,
   Paper,
 } from '@mui/material';
-import { auth, googleProvider } from '@/firebase/FirebaseConfig';
+import {
+  auth,
+  storage,
+  googleProvider,
+} from '@/firebase/FirebaseConfig';
 import {
   createUserWithEmailAndPassword,
   signInWithPopup,
+  sendEmailVerification,
 } from 'firebase/auth';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from 'firebase/storage';
+import {
+  doc,
+  getFirestore,
+  setDoc,
+} from 'firebase/firestore';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useRouter } from 'next/navigation';
+import Swal from 'sweetalert2';
+import toast from 'react-hot-toast';
 
 type FormData = {
   firstName: string;
@@ -26,6 +43,8 @@ type FormData = {
   city: string;
   zip: string;
   country: string;
+  companyName: string;
+  taxId: string;
   file: File | null;
 };
 
@@ -42,6 +61,8 @@ export default function SignUp() {
     city: '',
     zip: '',
     country: '',
+    companyName: '',
+    taxId: '',
     file: null,
   });
 
@@ -56,15 +77,67 @@ export default function SignUp() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.file) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'File Missing',
+        text: 'Please upload your EIN/Reseller Certificate.',
+      });
+    }
+
     try {
-      await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      alert('Registered successfully!');
-      router.push('/');
-    } catch (error: unknown) {
+      // Register user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const user = userCredential.user;
+
+      // Upload file to Firebase Storage
+      const fileRef = ref(storage, `resellerCertificates/${user.uid}/${formData.file.name}`);
+      await uploadBytes(fileRef, formData.file);
+      const fileURL = await getDownloadURL(fileRef);
+
+      // Store user data in Firestore
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        zip: formData.zip,
+        country: formData.country,
+        companyName: formData.companyName,
+        taxId: formData.taxId,
+        resellerCertificateURL: fileURL,
+        createdAt: new Date(),
+      });
+
+      // Send Email Verification
+      await sendEmailVerification(user);
+      toast.success("Registration Successful! Please verify your email before login.");
+
+      // Redirect after email is verified
+      const interval = setInterval(async () => {
+        await user.reload();
+        if (user.emailVerified) {
+          clearInterval(interval);
+          toast.success("Email Verified!");
+          router.push('/');
+        }
+      }, 3000);
+    } catch (error) {
+      // Specify error type as FirebaseError for better error handling
       if (error instanceof Error) {
-        alert(error.message);
+        toast.error(`${error.message} Registration Failed`);
       } else {
-        alert('An unexpected error occurred.');
+        toast.error("Registration Failed due to an unknown error");
       }
     }
   };
@@ -72,13 +145,14 @@ export default function SignUp() {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      alert('Signed in with Google!');
+      toast.success("SignUp Successfully!");
       router.push('/dashboard');
-    } catch (error: unknown) {
+    } catch (error) {
+      // Specify error type as FirebaseError for better error handling
       if (error instanceof Error) {
-        alert(error.message);
+        toast.error(`${error.message} Google Sign-in Failed`);
       } else {
-        alert('An unexpected error occurred.');
+        toast.error("Google Sign-in Failed due to an unknown error");
       }
     }
   };
@@ -111,90 +185,45 @@ export default function SignUp() {
           <Box display="flex" flexDirection="column" gap={2}>
             {/* Name Fields */}
             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
-              <TextField
-                name="firstName"
-                label="First Name"
-                fullWidth
-                required
-                value={formData.firstName}
-                onChange={handleChange}
-              />
-              <TextField
-                name="lastName"
-                label="Last Name"
-                fullWidth
-                required
-                value={formData.lastName}
-                onChange={handleChange}
-              />
+              <TextField name="firstName" label="First Name" fullWidth required value={formData.firstName} onChange={handleChange} />
+              <TextField name="lastName" label="Last Name" fullWidth required value={formData.lastName} onChange={handleChange} />
             </Box>
 
             {/* Email & Password */}
             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
-              <TextField
-                name="email"
-                label="Email Address"
-                type="email"
-                fullWidth
-                required
-                value={formData.email}
-                onChange={handleChange}
-              />
-              <TextField
-                name="password"
-                label="Password"
-                type="password"
-                fullWidth
-                required
-                value={formData.password}
-                onChange={handleChange}
-              />
+              <TextField name="email" label="Email Address" type="email" fullWidth required value={formData.email} onChange={handleChange} />
+              <TextField name="password" label="Password" type="password" fullWidth required value={formData.password} onChange={handleChange} />
             </Box>
 
             {/* Contact & Address */}
             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
-              <TextField
-                name="phone"
-                label="Phone Number"
-                fullWidth
-                required
-                value={formData.phone}
-                onChange={handleChange}
-              />
-              <TextField
-                name="address"
-                label="Address"
-                fullWidth
-                required
-                value={formData.address}
-                onChange={handleChange}
-              />
+              <TextField name="phone" label="Phone Number" fullWidth required value={formData.phone} onChange={handleChange} />
+              <TextField name="address" label="Address" fullWidth required value={formData.address} onChange={handleChange} />
             </Box>
 
             {/* City / Zip / Country */}
             <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+              <TextField name="city" label="City" fullWidth required value={formData.city} onChange={handleChange} />
+              <TextField name="zip" label="Zip Code" fullWidth required value={formData.zip} onChange={handleChange} />
+              <TextField name="country" label="Country" fullWidth required value={formData.country} onChange={handleChange} />
+            </Box>
+
+            {/* Company Name & TAX ID */}
+            <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
               <TextField
-                name="city"
-                label="City"
+                name="companyName"
+                label="Company Name"
                 fullWidth
                 required
-                value={formData.city}
+                value={formData.companyName}
                 onChange={handleChange}
               />
               <TextField
-                name="zip"
-                label="Zip Code"
+                name="taxId"
+                label="TAX ID"
                 fullWidth
                 required
-                value={formData.zip}
-                onChange={handleChange}
-              />
-              <TextField
-                name="country"
-                label="Country"
-                fullWidth
-                required
-                value={formData.country}
+                value={formData.taxId}
                 onChange={handleChange}
               />
             </Box>

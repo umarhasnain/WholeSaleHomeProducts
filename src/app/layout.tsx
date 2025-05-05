@@ -5,8 +5,9 @@ import "./globals.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "aos/dist/aos.css";
-import { DataProvider } from "@/context/DataContext";
+import { CartProvider, DataProvider } from "@/context/DataContext";
 import ClientLayout from "./client-layout";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WholeSaleHomeProducts – Bulk Deals on Electronics, Kitchen, Tools & More",
+  title:
+    "WholeSaleHomeProducts – Bulk Deals on Electronics, Kitchen, Tools & More",
   description:
     "Discover unbeatable wholesale prices on Electronics, Home & Kitchen, Automotive, Sports, Tools & more. Shop bulk with confidence at WholesaleHome – your trusted B2B marketplace.",
 };
@@ -31,16 +33,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <ClientLayout>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <DataProvider>
-     
-
-
-          {children}
-       
+          <CartProvider>
+            <ClientLayout>
+              {children}
+              <Toaster position="top-center" reverseOrder={false} />
+            </ClientLayout>
+          </CartProvider>
         </DataProvider>
-          </ClientLayout>
       </body>
     </html>
   );

@@ -1,25 +1,43 @@
-"use client";
+'use client';
 
-import { DataContext, Product } from "@/context/DataContext";
-import Aos from "aos";
-import Image from "next/image";
-import Link from "next/link";
-import { useContext, useEffect } from "react";
-import { FaClock } from "react-icons/fa";
+import { useContext, useEffect, useState } from 'react';
+import { CartContext, DataContext, Product } from '@/context/DataContext';
+import Aos from 'aos';
+import Image from 'next/image';
+import Link from 'next/link';
+import { FaClock } from 'react-icons/fa';
+import { MdAddShoppingCart } from 'react-icons/md';
+import toast from 'react-hot-toast';
+import { getAuth, onAuthStateChanged } from 'firebase/auth'; // ✅ auth added
 
-const ProductData = () => {
-  const context = useContext(DataContext);
-  const dataSet: Product[] = context?.products ?? [];
+const LimitedTimeOffers = () => {
+  const dataContext = useContext(DataContext);
+  const cartContext = useContext(CartContext);
+  const dataSet: Product[] = dataContext?.products ?? [];
 
-  console.log('data===>', dataSet);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     Aos.init({
       duration: 1000,
-      easing: "ease-in-out",
+      easing: 'ease-in-out',
       once: false,
     });
   }, []);
+
+  const handleAddToCart = (product: Product) => {
+    if (!cartContext) return;
+    cartContext.addToCart(product);
+    toast.success(`${product.name} added to cart!`);
+  };
 
   return (
     <section
@@ -50,31 +68,48 @@ const ProductData = () => {
               className="bg-blue-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col"
             >
               <div className="relative w-full h-60">
-                <Link href={`/productDetails/${index}`}>
+                <Link href={`/productDetails/${offer.id}`}>
                   <Image
                     src={offer.imageUrls[0]}
                     alt={offer.name}
-                    layout="fill" // Make sure the image fills the container
-                    objectFit="cover" // Cover ensures the image fills the div without distortion
-                    className="object-cover w-full h-60"
+                    layout="fill"
+                    objectFit="cover"
+                    className="object-cover"
                   />
                 </Link>
                 <span className="absolute top-2 left-2 bg-red-600 text-white text-xs sm:text-sm font-semibold px-3 py-1 rounded-full shadow">
                   {offer.discount}
                 </span>
               </div>
+
               <div className="p-5 text-left space-y-2 flex-grow flex flex-col justify-between">
                 <Link href={`/productDetails/${offer.id}`}>
                   <h3 className="text-base sm:text-lg font-semibold text-blue-900">
                     {offer.name}
                   </h3>
                 </Link>
-                {/* Button at the bottom */}
-                <Link href={`/productDetails/${offer.id}`}>
-                  <button className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition">
-                    Add To Quote Request
-                  </button>
-                </Link>
+
+                {/* ✅ Conditionally show price */}
+                <h3 className="text-base sm:text-lg font-semibold text-black">
+                  Price: {isLoggedIn ? offer.wholesalePrice : offer.retailPrice} $
+                </h3>
+
+                {!isLoggedIn && (
+                  <Link href="/signup">
+                    <button className="mt-2 w-full py-2 text-sm text-center bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 transition">
+                      👁️ To see wholesale prices, please log in
+                    </button>
+                  </Link>
+                )}
+              </div>
+
+              <div>
+                <button
+                  onClick={() => handleAddToCart(offer)}
+                  className="mt-3 w-full flex justify-center items-center gap-2 text-xl py-2 bg-blue-700 text-white cursor-pointer rounded hover:bg-blue-800 transition"
+                >
+                  <MdAddShoppingCart /> Add To Cart
+                </button>
               </div>
             </div>
           ))}
@@ -89,4 +124,4 @@ const ProductData = () => {
   );
 };
 
-export default ProductData;
+export default LimitedTimeOffers;

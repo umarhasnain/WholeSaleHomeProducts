@@ -4,7 +4,6 @@ import { getAuth ,createUserWithEmailAndPassword,signInWithEmailAndPassword ,onA
 import {getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,setDoc, onSnapshot, getDocs } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_AUTH_DOMAIN,
@@ -23,4 +22,4 @@ const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 
-export {auth,createUserWithEmailAndPassword,signInWithEmailAndPassword ,onAuthStateChanged,signOut,db ,collection, addDoc, updateDoc, deleteDoc, doc, setDoc , onSnapshot,storage,getDocs,googleProvider }
+export {app,auth,createUserWithEmailAndPassword,signInWithEmailAndPassword ,onAuthStateChanged,signOut,db ,collection, addDoc, updateDoc, deleteDoc, doc, setDoc , onSnapshot,storage,getDocs,googleProvider }

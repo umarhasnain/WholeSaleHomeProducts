@@ -30,11 +30,12 @@ import "react-toastify/dist/ReactToastify.css";
 import { FiUploadCloud } from "react-icons/fi";
 import Image from "next/image";
 
-// Product Type
+// ✅ Updated Product Type
 type Product = {
   id?: string;
   name: string;
-  price: string;
+  retailPrice: string;
+  wholesalePrice: string;
   category: string;
   description: string;
   imageUrls: string[];
@@ -44,7 +45,8 @@ const AddProduct = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [productData, setProductData] = useState<Product>({
     name: "",
-    price: "",
+    retailPrice: "",
+    wholesalePrice: "",
     category: "",
     description: "",
     imageUrls: [],
@@ -85,7 +87,8 @@ const AddProduct = () => {
       setEditingProduct(null);
       setProductData({
         name: "",
-        price: "",
+        retailPrice: "",
+        wholesalePrice: "",
         category: "",
         description: "",
         imageUrls: [],
@@ -144,6 +147,26 @@ const AddProduct = () => {
     }
   };
 
+  const handleSetPrimaryImage = (productId: string, imageUrl: string) => {
+    const product = products.find(p => p.id === productId);
+    if (!product || !imageUrl) return;
+
+    const currentUrls = [...product.imageUrls];
+    const index = currentUrls.indexOf(imageUrl);
+    if (index > 0) {
+      currentUrls.splice(index, 1);
+      currentUrls.unshift(imageUrl);
+
+      updateDoc(doc(db, "products", productId), {
+        imageUrls: currentUrls,
+      }).then(() => {
+        toast.success("Primary image updated!");
+      }).catch(() => {
+        toast.error("Failed to update image");
+      });
+    }
+  };
+
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(filterText.toLowerCase()) ||
     p.category.toLowerCase().includes(filterText.toLowerCase())
@@ -152,7 +175,6 @@ const AddProduct = () => {
   return (
     <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
       <ToastContainer />
-      {/* Search and Add */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <h1 className="text-4xl font-bold text-blue-800">Manage Products</h1>
         <div className="flex gap-2">
@@ -181,11 +203,18 @@ const AddProduct = () => {
           >
             <h2 className="text-2xl font-semibold text-blue-700">{product.name}</h2>
             <p className="text-sm text-gray-600">{product.category}</p>
-            <p className="text-blue-600 font-bold">PKR {product.price}</p>
+            <p className="text-blue-600 font-bold">
+              Retail: PKR {product.retailPrice} | Wholesale: PKR {product.wholesalePrice}
+            </p>
             <p className="text-sm text-gray-500 my-2">{product.description}</p>
             <div className="flex gap-2 overflow-x-auto">
               {product.imageUrls.map((url, idx) => (
-                <div key={idx} className="w-20 h-20 relative rounded-lg border-2 border-blue-300 shadow-md overflow-hidden">
+                <div
+                  key={idx}
+                  className={`w-20 h-20 relative rounded-lg border-2 ${idx === 0 ? 'border-green-500' : 'border-blue-300'} shadow-md overflow-hidden cursor-pointer`}
+                  onClick={() => handleSetPrimaryImage(product.id!, url)}
+                  title={idx === 0 ? "Primary Image" : "Set as Primary"}
+                >
                   <Image
                     src={url}
                     alt="Product"
@@ -231,9 +260,17 @@ const AddProduct = () => {
             />
             <input
               type="text"
-              name="price"
-              placeholder="Price"
-              value={productData.price}
+              name="retailPrice"
+              placeholder="Retail Price"
+              value={productData.retailPrice}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-blue-300 rounded focus:outline-none"
+            />
+            <input
+              type="text"
+              name="wholesalePrice"
+              placeholder="Wholesale Price"
+              value={productData.wholesalePrice}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-blue-300 rounded focus:outline-none"
             />
