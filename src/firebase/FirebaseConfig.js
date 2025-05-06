@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth ,createUserWithEmailAndPassword,signInWithEmailAndPassword ,onAuthStateChanged,signOut, GoogleAuthProvider} from "firebase/auth";
 import {getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,setDoc, onSnapshot, getDocs } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_API_KEY,
@@ -20,6 +21,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
+const functions = getFunctions(app);
 
 
-export {app,auth,createUserWithEmailAndPassword,signInWithEmailAndPassword ,onAuthStateChanged,signOut,db ,collection, addDoc, updateDoc, deleteDoc, doc, setDoc , onSnapshot,storage,getDocs,googleProvider }
+export {app,auth,createUserWithEmailAndPassword,signInWithEmailAndPassword ,onAuthStateChanged,signOut,functions ,db ,collection, addDoc, updateDoc, deleteDoc, doc, setDoc , onSnapshot,storage,getDocs,googleProvider }

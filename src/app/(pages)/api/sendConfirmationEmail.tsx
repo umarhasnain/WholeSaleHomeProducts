@@ -1,31 +1,44 @@
-// // pages/api/sendConfirmationEmail.ts
-// import sendGridMail from '@sendgrid/mail';
+// // functions/src/index.ts
 
-// // Set SendGrid API key
-// sendGridMail.setApiKey(process.env.SENDGRID_API_KEY); // You'll set this in your .env.local file
+// import * as functions from "firebase-functions";
+// import * as nodemailer from "nodemailer";
 
-// const handler = async (req, res) => {
-//   if (req.method === 'POST') {
-//     const { email, orderDetails } = req.body;
+// const transporter = nodemailer.createTransport({
+//   host: "smtp.zoho.com",
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     user: "info@wholesalehomeproducts.com",
+//     pass: "your_app_password", // Use env var in real app
+//   },
+// });
 
-//     const msg = {
-//       to: email, // recipient's email
-//       from: 'your-email@example.com', // your email
-//       subject: 'Order Confirmation',
-//       text: `Hello, your order has been placed successfully. Order details: ${orderDetails}`,
-//       html: `<p>Hello, your order has been placed successfully.</p><p>Order details: ${orderDetails}</p>`,
+// export const sendOrderConfirmation = functions.https.onCall(
+//   async (
+//     data: { name: string; email: string; orderId: string; total: number },
+//     context: any
+//   ) => {
+//     const { name, email, orderId, total } = data;
+
+//     const mailOptions = {
+//       from: '"Wholesale Home Products" <info@wholesalehomeproducts.com>',
+//       to: email,
+//       subject: `Order Confirmation - ${orderId}`,
+//       html: `
+//         <h2>Hi ${name},</h2>
+//         <p>Thank you for your order <strong>${orderId}</strong>.</p>
+//         <p>Total: Rs. ${total}</p>
+//         <br/>
+//         <p>Regards,<br/>Wholesale Home Products</p>
+//       `,
 //     };
 
 //     try {
-//       // Send the email via SendGrid
-//       await sendGridMail.send(msg);
-//       res.status(200).json({ message: 'Order confirmation email sent!' });
+//       await transporter.sendMail(mailOptions);
+//       return { success: true };
 //     } catch (error) {
-//       res.status(500).json({ error: error.message });
+//       console.error("Failed to send email:", error);
+//       throw new functions.https.HttpsError("internal", "Email send failed");
 //     }
-//   } else {
-//     res.status(405).json({ error: 'Method Not Allowed' });
 //   }
-// };
-
-// export default handler;
+// );
