@@ -4,18 +4,28 @@ import { getAuth } from 'firebase/auth';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/firebase/FirebaseConfig';
 
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 interface Order {
   orderId: string;
   date: string;
   status: string;
   total: number;
-  items: number;
+  items: OrderItem[];
 }
 
 export default function UserOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [formattedDates, setFormattedDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  console.log("date===> ",formattedDates);
+  
   useEffect(() => {
     const fetchOrders = async () => {
       const auth = getAuth();
@@ -25,19 +35,25 @@ export default function UserOrders() {
         const q = query(collection(db, 'orders'), where('userId', '==', user.uid));
         const querySnapshot = await getDocs(q);
         const userOrders: Order[] = [];
-
         querySnapshot.forEach((doc) => {
           const data = doc.data();
+          const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : null;
           userOrders.push({
-            orderId: data.orderId,
-            date: data.date,
-            status: data.status,
-            total: data.total,
-            items: data.items,
+            orderId: data.orderId || doc.id,
+            date: createdAt ? createdAt.toISOString() : '',
+            status: data.status || 'Pending',
+            total: data.total || 0,
+            items: Array.isArray(data.items) ? data.items : [],
           });
         });
 
         setOrders(userOrders);
+
+        // Format dates safely
+        const dates = userOrders.map((order) =>
+          order.date ? new Date(order.date).toDateString() : 'No Date'
+        );
+        setFormattedDates(dates);
       }
 
       setLoading(false);
@@ -58,22 +74,33 @@ export default function UserOrders() {
         </div>
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => (
+          {orders.map((order, index) => (
             <div
               key={order.orderId}
-              className="flex flex-col md:flex-row justify-between items-start md:items-center border p-4 rounded-lg shadow-sm"
+              className="flex flex-col gap-4 border p-4 rounded-lg shadow-sm"
             >
-              <div>
-                <div className="font-semibold">Order #{order.orderId}</div>
-                <div className="text-sm text-gray-500">{new Date(order.date).toDateString()}</div>
+              <div className="flex justify-between flex-wrap gap-2">
+                <div>
+                  <div className="font-semibold">Order #{order.orderId}</div>
+                  <div className="text-sm text-gray-500">{formattedDates[index]}</div>
+                </div>
+                <div className="text-sm text-gray-700">{order.status}</div>
+                <div className="text-sm text-gray-700">
+                  ${order.total} for {order.items.length} items
+                </div>
               </div>
-              <div className="text-sm text-gray-700">{order.status}</div>
-              <div className="text-sm text-gray-700">
-                ${order.total.toFixed(2)} for {order.items} items
+
+              <div className="pl-4 space-y-1">
+                {order.items.map((item, i) => (
+                  <div key={item.id || i} className="text-sm text-gray-600">
+                    • {item.name} (${item.price}) × {item.quantity}
+                  </div>
+                ))}
               </div>
-              <button className="mt-2 md:mt-0 bg-gray-100 hover:bg-gray-200 text-sm font-semibold px-4 py-1 rounded">
+
+              {/* <button className="self-start mt-2 bg-gray-100 hover:bg-gray-200 text-sm font-semibold px-4 py-1 rounded">
                 View
-              </button>
+              </button> */}
             </div>
           ))}
         </div>

@@ -1,21 +1,25 @@
 "use client";
 
 import { useContext, useEffect, useMemo, useState } from "react";
-import { DataContext, Product } from "@/context/DataContext";
+import { CartContext, DataContext, Product } from "@/context/DataContext";
 import Aos from "aos";
 import Image from "next/image";
 import Link from "next/link";
 import { FaClock } from "react-icons/fa";
 import { useParams } from "next/navigation";
+import { MdAddShoppingCart } from "react-icons/md";
+import toast from "react-hot-toast";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const CategoryPage = () => {
   const params = useParams();
   const context = useContext(DataContext);
-
+  const cartContext = useContext(CartContext);
   const dataSet: Product[] = useMemo(() => context?.products ?? [], [context?.products]);
 
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const rawCategory = params?.category?.toString() || "";
   const cleanedCategory = decodeURIComponent(rawCategory)
@@ -25,7 +29,13 @@ const CategoryPage = () => {
   useEffect(() => {
     Aos.init({ duration: 1000, easing: "ease-in-out", once: false });
   }, []);
-
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+    });
+    return () => unsubscribe();
+  }, []);
   useEffect(() => {
     if (dataSet.length > 0 && cleanedCategory) {
       const result = dataSet.filter((product) =>
@@ -35,6 +45,14 @@ const CategoryPage = () => {
       setLoading(false);
     }
   }, [cleanedCategory, dataSet]);
+
+  
+  const handleAddToCart = (product: Product) => {
+    if (!cartContext) return;
+    cartContext.addToCart(product);
+    toast.success(`${product.name} added to cart!`);
+  };
+
 
   return (
     <section
@@ -60,35 +78,59 @@ const CategoryPage = () => {
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8"
           >
             {filteredProducts.length > 0 ? (
-              filteredProducts.map((offer) => (
+              filteredProducts.map((offer,index) => (
                 <div
-                  key={offer.id}
-                  className="bg-blue-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col"
-                >
-                  <div className="relative w-full h-60">
-                    <Link href={`/productDetails/${offer.id}`}>
-                      <Image
-                        src={offer.imageUrls[0]}
-                        alt={offer.name}
-                        fill
-                        className="object-cover w-full h-60"
-                      />
-                    </Link>
-                    {offer.discount && (
-                      <span className="absolute top-2 left-2 bg-red-600 text-white text-xs sm:text-sm font-semibold px-3 py-1 rounded-full shadow">
-                        {offer.discount}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-5 text-left space-y-2 flex-grow flex flex-col justify-between">
-                    <h3 className="text-base sm:text-lg font-semibold text-blue-900">
-                      {offer.name}
-                    </h3>
-                    <button className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition">
-                      Add To Quote Request
+              key={index}
+              className="bg-blue-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col"
+            >
+              <div className="relative w-full h-60">
+                <Link href={`/productDetails/${offer.id}`}>
+                  <Image
+                    src={offer.imageUrls[0]}
+                    alt={offer.name}
+                    layout="fill"
+                    objectFit="cover"
+                    className="object-cover"
+                  />
+                </Link>
+                <span className="absolute top-2 left-2 bg-red-600 text-white text-xs sm:text-sm font-semibold px-3 py-1 rounded-full shadow">
+                  {offer.discount}
+                </span>
+              </div>
+
+              <div className="p-5 text-left space-y-2 flex-grow flex flex-col justify-between">
+                <Link href={`/productDetails/${offer.id}`}>
+                  <h3 className="text-base sm:text-lg font-semibold text-blue-900">
+                    {offer.name}
+                  </h3>
+                </Link>
+
+                {/* ✅ Show wholesale or retail price based on login */}
+                <h3 className="text-base sm:text-lg font-semibold text-black">
+                  Price: {isLoggedIn ? offer.wholesalePrice : offer.retailPrice} $
+                </h3>
+
+                {/* Show wholesale message if not logged in */}
+                {!isLoggedIn && (
+                  <Link href="/signup">
+                    <button
+                      className="mt-2 w-full py-2 text-sm text-center bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 transition"
+                    >
+                      👁️ To see wholesale prices, please log in
                     </button>
-                  </div>
-                </div>
+                  </Link>
+                )}
+              </div>
+
+              <div>
+                <button
+                  onClick={() => handleAddToCart(offer)}
+                  className="mt-3 w-full flex justify-center items-center gap-2 text-xl py-2 bg-blue-700 text-white cursor-pointer rounded hover:bg-blue-800 transition"
+                >
+                  <MdAddShoppingCart /> Add To Cart
+                </button>
+              </div>
+            </div>
               ))
             ) : (
               <div className="text-xl text-gray-500 col-span-full">

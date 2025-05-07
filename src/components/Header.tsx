@@ -21,7 +21,6 @@ import {
 import { FaUserCircle } from "react-icons/fa";
 import Link from "next/link";
 import { useCart } from "@/context/DataContext";
-import UserModeBadge from "./UserModeBadge";
 
 // interface User {
 //   id: string;
@@ -109,9 +108,9 @@ export default function Header() {
               <span className="text-2xl font-bold text-black">
                 HomeProducts
               </span>
-              <div className="hidden md:block">
-                <UserModeBadge /> {/* 🏷️ Badge */}
-              </div>
+              {/* <div className="hidden md:block">
+                <UserModeBadge /> 
+              </div> */}
             </div>
           </Link>
 
@@ -245,9 +244,9 @@ export default function Header() {
                 </span>
               </Link> */}
 
-              <div className="flex justify-between items-center p-4 shadow w-40 bg-white">
+              {/* <div className="flex justify-between items-center p-4 shadow w-40 bg-white">
                 <UserModeBadge />
-              </div>
+              </div> */}
             </div>
           ) : (
             <ul className="divide-y divide-gray-200">

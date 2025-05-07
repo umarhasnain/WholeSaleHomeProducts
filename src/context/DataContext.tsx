@@ -362,7 +362,7 @@ const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
         setProducts(fetchedProducts);
         setLoading(false);
-        console.log('Fetched data: ', fetchedProducts);
+        // console.log('Fetched data: ', fetchedProducts);
       } catch (error) {
         console.error('Error fetching data: ', error);
         setLoading(false);

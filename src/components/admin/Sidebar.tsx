@@ -15,7 +15,7 @@ import { BsChatLeftQuoteFill } from "react-icons/bs";
 import { FaFirstOrderAlt } from "react-icons/fa6";
 import { MdLogout } from "react-icons/md";
 import { auth, signOut } from '@/firebase/FirebaseConfig.js';
-import { useRouter } from 'next/navigation'; // ✅ using app router
+import { useRouter } from 'next/navigation'; 
 import toast from 'react-hot-toast';
 
 const NAVIGATION: Navigation = [
