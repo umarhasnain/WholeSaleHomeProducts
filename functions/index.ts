@@ -49,8 +49,8 @@
 
 // functions/src/index.ts
 
-import * as functions from "firebase-functions";
-import * as nodemailer from "nodemailer";
+import functions from "firebase-functions";
+import nodemailer from "nodemailer";
 import cors from "cors";
 
 
